@@ -1,0 +1,42 @@
+{
+  "name": "existdb-mcp",
+  "version": "1.0.0",
+  "description": "MCP server that assists XQuery development for eXist-db: documentation lookup, query execution, and collection management.",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "existdb-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc && node scripts/copy-cache.mjs",
+    "scrape": "tsx scripts/scrape-fundocs.ts",
+    "start": "node dist/index.js",
+    "test": "node --import tsx --test test/*.test.ts",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "existdb",
+    "xquery",
+    "claude",
+    "ai-tools"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.0"
+  }
+}
