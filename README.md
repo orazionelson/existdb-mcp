@@ -1,2 +1,194 @@
 # existdb-mcp
-An MCP (Model Context Protocol) server that assists XQuery development for eXist-db.
+
+An **MCP (Model Context Protocol) server** that assists XQuery development for [eXist-db](https://exist-db.org).
+
+Connect it to **Claude Code** or **Claude Desktop** to get:
+
+- 📚 **Documentation lookup** — offline, from a local cache of the eXist-db fundocs
+- ⚙️ **XQuery execution** — run queries against a live eXist-db instance via the REST API
+- 🗄️ **Collection management** — list, create, store, retrieve, and delete collections/documents
+
+---
+
+## Quick start
+
+### 1. Clone & install
+
+```bash
+git clone https://github.com/your-username/existdb-mcp.git
+cd existdb-mcp
+npm install
+```
+
+### 2. Build the documentation cache
+
+This scrapes [exist-db.org/exist/apps/fundocs](https://exist-db.org/exist/apps/fundocs) and writes `src/cache/fundocs.json`.
+
+```bash
+npm run scrape
+```
+
+> If the site is unreachable, generate a minimal offline fixture instead:
+> ```bash
+> npm run scrape -- --offline
+> ```
+
+### 3. Build the TypeScript
+
+```bash
+npm run build
+```
+
+### 4. Configure Claude
+
+#### Claude Code (recommended)
+
+Add to your project's `.claude/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "existdb": {
+      "command": "node",
+      "args": ["/absolute/path/to/existdb-mcp/dist/index.js"],
+      "env": {
+        "EXISTDB_ENDPOINT": "http://localhost:8080/exist",
+        "EXISTDB_USER": "admin",
+        "EXISTDB_PASSWORD": "your-password"
+      }
+    }
+  }
+}
+```
+
+#### Claude Desktop
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS):
+
+```json
+{
+  "mcpServers": {
+    "existdb": {
+      "command": "node",
+      "args": ["/absolute/path/to/existdb-mcp/dist/index.js"],
+      "env": {
+        "EXISTDB_ENDPOINT": "http://localhost:8080/exist",
+        "EXISTDB_USER": "admin",
+        "EXISTDB_PASSWORD": "your-password"
+      }
+    }
+  }
+}
+```
+
+---
+
+## Environment variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `EXISTDB_ENDPOINT` | `http://localhost:8080/exist` | eXist-db base URL |
+| `EXISTDB_USER` | `admin` | eXist-db username |
+| `EXISTDB_PASSWORD` | *(empty)* | eXist-db password |
+
+All three can also be passed as arguments to individual tool calls.
+
+---
+
+## Available tools
+
+### Documentation (offline — no eXist-db needed)
+
+| Tool | Description |
+|---|---|
+| `existdb_lookup_function` | Full docs for a function: signature, params, return type |
+| `existdb_list_namespace_functions` | All functions in a namespace (e.g. `xmldb`, `ft`, `util`) |
+| `existdb_search_functions` | Full-text search across all function names and descriptions |
+| `existdb_list_namespaces` | Summary table of all available namespaces |
+| `existdb_get_xquery_snippet` | Ready-to-use XQuery code snippet for common patterns |
+
+### Query execution (requires live eXist-db)
+
+| Tool | Description |
+|---|---|
+| `existdb_execute_query` | Execute an XQuery expression, returns paginated results |
+| `existdb_validate_xquery` | Check XQuery syntax without executing |
+
+### Collection management (requires live eXist-db)
+
+| Tool | Description |
+|---|---|
+| `existdb_list_collection` | List sub-collections and documents in a collection |
+| `existdb_get_document` | Retrieve the XML content of a document |
+| `existdb_store_document` | Create or replace a document via PUT |
+| `existdb_delete_resource` | Delete a document or collection |
+| `existdb_create_collection` | Create a new sub-collection |
+
+---
+
+## Example prompts
+
+Once connected to Claude, you can ask things like:
+
+```
+What parameters does xmldb:store accept?
+
+List all functions in the Lucene full-text namespace.
+
+Search for functions related to scheduling.
+
+Show me a RESTXQ endpoint snippet.
+
+Execute this XQuery on my local eXist-db:
+  for $doc in collection("/db/myapp")//record
+  return $doc/title/string(.)
+
+List the contents of /db/myapp/data.
+
+Store this XML as /db/myapp/config/settings.xml:
+  <settings><theme>dark</theme></settings>
+```
+
+---
+
+## Regenerating the documentation cache
+
+The cache is valid for the installed eXist-db version. Regenerate it when you upgrade eXist-db or want fresher docs:
+
+```bash
+npm run scrape
+npm run build
+```
+
+The scraper fetches one namespace page at a time with a 300 ms delay to be polite to the server (~2–3 minutes total for all namespaces).
+
+---
+
+## Project structure
+
+```
+existdb-mcp/
+├── src/
+│   ├── index.ts              # MCP server entry point
+│   ├── types/
+│   │   └── index.ts          # Shared TypeScript types
+│   ├── tools/
+│   │   ├── docs.ts           # Documentation lookup tools
+│   │   ├── query.ts          # XQuery execution tools
+│   │   ├── query-helpers.ts  # Shared auth helpers
+│   │   └── collections.ts    # Collection management tools
+│   └── cache/
+│       └── fundocs.json      # Generated by npm run scrape
+├── scripts/
+│   └── scrape-fundocs.ts     # Fundocs scraper
+├── dist/                     # Compiled output (npm run build)
+├── package.json
+├── tsconfig.json
+└── README.md
+```
+
+---
+
+## License
+
+MIT
