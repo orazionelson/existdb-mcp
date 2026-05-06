@@ -1,9 +1,22 @@
 # existdb-mcp
 
-An **MCP (Model Context Protocol) server** that turns Claude into a hands-on
-assistant for **XQuery development on [eXist-db](https://exist-db.org)**.
+An **MCP (Model Context Protocol) server** that connects Claude to
+[eXist-db](https://exist-db.org) — the native XML database widely used in
+the **digital humanities** as the backbone of TEI Publisher, scholarly
+editions, linguistic corpora and institutional archives.
 
-Plug it into **Claude Code** or **Claude Desktop** to get:
+If you work with **TEI/XML corpora**, manage a **DH project**, or develop
+**XQuery applications**, this server lets Claude:
+
+- read your offline copy of the eXist-db function reference,
+- run XQueries against your live database,
+- inspect, retrieve, store and delete documents and collections —
+
+all through natural-language prompts in **Claude Code** or
+**Claude Desktop**. No more context-switching between the chat, eXide and
+the REST endpoint.
+
+### What you get
 
 - 📚 **Offline documentation lookup** — full signatures for every built-in
   function, served from a local cache of the eXist-db fundocs (no internet
@@ -11,9 +24,25 @@ Plug it into **Claude Code** or **Claude Desktop** to get:
 - ⚙️ **Live XQuery execution** — run queries against your eXist-db instance
   via the REST API, with paginated results
 - 🗄️ **Collection management** — list, create, store, retrieve and delete
-  collections and documents
+  collections and documents (think `/db/corpus`, `/db/apps/edition`, …)
 - 🧠 **XQuery snippets** — ready-to-paste templates for common patterns
-  (RESTXQ endpoints, Lucene full-text, XSLT, HTTP client, …)
+  (RESTXQ endpoints, Lucene full-text, XSLT pipelines, HTTP client, …)
+
+### Who is this for?
+
+- 👩‍💻 **XQuery / eXist-db developers** building apps, RESTXQ APIs or data
+  pipelines.
+  > *"Look up `xmldb:store`, then store this XML as `/db/myapp/data/01.xml`."*
+
+- 📜 **Researchers & digital humanists** working on TEI editions, corpora
+  or critical editions.
+  > *"Extract all `<persName>` values from `/db/corpus` and return a
+  > frequency-ordered list."*
+
+- 🗂️ **Archivists & curators** managing XML-encoded collections (EAD, TEI,
+  METS, EpiDoc, …).
+  > *"List every document in `/db/archive/finding-aids` modified in the
+  > last 30 days, with size and last editor."*
 
 ---
 
@@ -24,9 +53,13 @@ Plug it into **Claude Code** or **Claude Desktop** to get:
 - [Environment variables](#environment-variables)
 - [Available tools](#available-tools)
 - [Example prompts](#example-prompts)
+  - [Working with TEI corpora](#working-with-tei-corpora)
+- [Ecosystem](#ecosystem)
 - [Testing](#testing)
 - [Troubleshooting](#troubleshooting)
+- [Regenerating the documentation cache](#regenerating-the-documentation-cache)
 - [Project structure](#project-structure)
+- [Contributing](#contributing)
 - [License](#license)
 
 ---
@@ -233,6 +266,76 @@ Look up xmldb:store, then use it to save
   <todo><item>Write tests</item></todo>
 as /db/scratch/todo.xml.
 ```
+
+### Working with TEI corpora
+
+If your collections contain TEI/XML, you can drive most of the day-to-day
+philological work straight from the chat.
+
+**Metadata from `<teiHeader>`**
+```
+List the title, author and publication date for every document in
+/db/corpus by reading the teiHeader.
+```
+
+**Named entities**
+```
+Extract all <persName> values from /db/corpus, deduplicate them and
+return a frequency-ordered list.
+```
+
+```
+Find every occurrence of <placeName ref="..."/> in /db/corpus/letters
+and group them by the `ref` attribute.
+```
+
+**Provenance and curation**
+```
+Show me documents in /db/corpus that have been modified in the last 7
+days, ordered by modification date.
+```
+
+```
+Validate that every TEI file in /db/corpus has a non-empty
+<sourceDesc>; list the offending paths.
+```
+
+**Lightweight stylometry / text analysis**
+```
+Count the occurrences of <said> per speaker across /db/corpus/plays
+using the Lucene full-text index for speed.
+```
+
+**Importing and exporting**
+```
+Store this TEI fragment as /db/corpus/drafts/letter-042.xml:
+  <TEI xmlns="http://www.tei-c.org/ns/1.0"> ... </TEI>
+```
+
+```
+Apply /db/corpus/xslt/tei-to-html.xsl to
+/db/corpus/letters/letter-001.xml and return the HTML.
+```
+
+> **Tip** — for namespace-aware queries (every TEI document lives under
+> `xmlns="http://www.tei-c.org/ns/1.0"`), ask Claude to declare
+> `declare default element namespace "http://www.tei-c.org/ns/1.0";` at
+> the top of the XQuery. The model is happy to do this when you mention
+> "TEI" in the prompt.
+
+---
+
+## Ecosystem
+
+A few projects you'll likely want next to this one:
+
+- [TEI Publisher](https://teipublisher.com) — the most common front-end
+  for TEI editions on top of eXist-db
+- [TEI Guidelines](https://tei-c.org/guidelines/) — the canonical reference
+  for the encoding scheme
+- [eXide](https://exist-db.org/exist/apps/eXide/) — the in-browser IDE
+  bundled with eXist-db; useful when Claude hands you a query you want to
+  tweak by hand
 
 ---
 
